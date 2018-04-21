@@ -36,10 +36,11 @@
 
     h1 {
       font-size: 2em;
-      margin: 0.67em 0;
+      margin: 0.5em 0;
     }
 
-    a {
+    a,
+    button {
       display: inline-block;
       background-color: transparent;
       color: #708090;
@@ -58,11 +59,20 @@
       user-select: none;
     }
 
-    footer>a:hover {
+    a:hover {
       color: #5F9EA0;
     }
 
-    .button {
+    button,
+    input {
+      line-height: 1.15;
+      margin: 0;
+      overflow: visible;
+    }
+
+    button,
+    button:active,
+    button:focus {
       background-color: #E7E7E7;
       color: #555555;
       border: 1px solid #555555;
@@ -72,17 +82,22 @@
       text-transform: none;
     }
 
-    .button:hover {
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    button:hover,
+    button:disabled {
       box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.2);
       background-color: #555555;
       color: white;
     }
 
-    .button,
-    input {
-      line-height: 1.15;
-      margin: 0;
-      overflow: visible;
+    .range-container {
+      display: block;
+      margin: 5px auto;
+      width: 200px;
     }
 
     input[type=range] {
@@ -90,8 +105,8 @@
       -moz-appearance: none;
       appearance: none;
       background: transparent;
-      height: 7px;
-      width: 150px;
+      height: 23px;
+      width: 100%;
       opacity: 0.8;
       transition: opacity 0.2s;
       -webkit-transition: 0.2s;
@@ -110,19 +125,55 @@
       -moz-appearance: none;
       appearance: none;
       border: 0;
-      height: 17px;
-      width: 17px;
-      background: #555555;
+      height: 25px;
+      width: 25px;
+      background: #5F9EA0;
       border-radius: 50%;
       cursor: pointer;
     }
 
     input[type=range]::-moz-range-thumb {
       border: 0;
-      height: 17px;
-      width: 17px;
-      background: #555555;
+      height: 25px;
+      width: 25px;
+      background: #5F9EA0;
       border-radius: 50%;
+      cursor: pointer;
+    }
+
+    input[type=range]::-ms-thumb {
+      border: 0;
+      height: 25px;
+      width: 25px;
+      background: #5F9EA0;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-runnable-track {
+      border: 0;
+      height: 7px;
+      width: 100%;
+      background: #708090;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    input[type=range]::-moz-range-track {
+      border: 0;
+      height: 7px;
+      width: 100%;
+      background: #708090;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    input[type=range]::-ms-track {
+      border: 0;
+      height: 7px;
+      width: 100%;
+      background: #708090;
+      border-radius: 7px;
       cursor: pointer;
     }
   </style>
@@ -137,11 +188,13 @@
       [] // შეგვიძლია გამოვიყენოთ მხოლოდ ერთი დამხმარე ღერძი
     ]; // მატრიცა: [კოშკები][ფირფიტები] = ფერი (ინდექსი)
     var from, to; // კოშკის გადასალაგებისთვის
-    var range_disks, range_speed; // DOM Elements
+    var range_disks, range_speed, b_start, b_reset; // DOM Elements
 
     function init() {
       range_disks = document.getElementById("disks");
       range_speed = document.getElementById("speed");
+      b_start = document.getElementById("start");
+      b_reset = document.getElementById("reset");
       buffer = document.createElement("canvas"); // background
       canvas = document.getElementById("hanoi");
       context = canvas.getContext("2d"); // "სახატავი" დაფა
@@ -164,60 +217,63 @@
       refresh_disks();
     }
 
-    function clear() {
-      context.clearRect(0, 0, canvas.width, canvas.height); // გასუფთავება
-      context.drawImage(buffer, 0, 0); // დავხატოთ ფონი
-      context.fillStyle = "black";
-    }
-
     function refresh_speed() {
       speed = 1 / range_speed.value * 1000;
     }
 
     function refresh_disks() {
+      reset();
       disks = range_disks.value;
       if (disks > 8) disks = 8; // ლიმიტი
-      step = -1; // 1-ი მდგომარეობა
-      from = to;
+      timer = undefined; // 1-ი მდგომარეობა
       start();
     }
 
+    function reset() {
+      clearTimeout(timer); // გავაჩეროთ
+      b_start.disabled = 0; // on: დაწყება
+      if (timer === null) {
+        clear(); // quick & dirty hack
+        timer = undefined; // 1-ი მდგომარეობა
+        b_reset.disabled = 1; // off: შეჩერება
+      } else timer = null;
+    }
+
     function start() {
-      if (from == to) {
-        reset();
+      b_reset.disabled = 0; // on: შეჩერება
+      if (timer === undefined) {
+        reset(); // 1-ი მდგომარეობა
+        from = to = step = 0;
         isEven = (disks % 2 === 0);
-        from = to = 0;
         for (var i = 0; i < towers.length; i++)
           towers[i].length = 0; // კოშკების გასუფთავება
         for (var j = 0; j < disks; j++)
           towers[0].push(j); // პირველი კოშკის ავსება
-        if (step < 0) {
-          step = 0;
-          draw(); // წინასწარი მდგომარეობა
-          return;
-        } else step = 0;
-      }
-      if (timer === null)
+        draw(); // წინასწარი მდგომარეობა
+      } else if (timer === null) {
+        b_start.disabled = 1; // off: დაწყება
         timer = setTimeout(run, 0); // ალგორითმის დაწყება
-    }
-
-    function peek(i) {
-      return towers[i][towers[i].length - 1]; // კოშკის ბოლო ფირფიტა
+      }
     }
 
     function run() {
       if (towers[2].length == disks) {
-        timer = null;
-        from = to;
+        timer = undefined; // 1-ი მდგომარეობა
+        b_start.disabled = 0; // on: დაწყება
+        b_reset.disabled = 1; // off: შეჩერება
         return; // მე-3 კოშკი აიგო
       }
-      draw();
+      move();
       step++;
       var ft = mode(peek(0), peek(1), peek(2));
       from = ft[0];
       to = ft[1];
       //[from, to] = mode(peek(0), peek(1), peek(2));
       timer = setTimeout(run, speed); // რეკურსია
+    }
+
+    function peek(i) {
+      return towers[i][towers[i].length - 1]; // კოშკის ბოლო ფირფიტა
     }
 
     function mode(tp1, tp2, tp3) {
@@ -237,10 +293,22 @@
       else return [null, null];
     }
 
-    function draw() {
+    function move() {
       if (to != from)
         towers[to].push(towers[from].pop());
+      else if (towers[0].length == disks)
+        return;
       //console.log((from + 1) + " -> " + (to + 1));
+      draw();
+    }
+
+    function clear() {
+      context.clearRect(0, 0, canvas.width, canvas.height); // გასუფთავება
+      context.drawImage(buffer, 0, 0); // დავხატოთ ფონი
+      context.fillStyle = "black";
+    }
+
+    function draw() {
       clear();
       context.fillText(step, 13, 25); // ბიჯები
       for (var tower = 0; tower < towers.length; tower++) // კოშკების აგება
@@ -255,14 +323,6 @@
         cw - color * 10, // ფირფიტის სიგანე (width > 20)
         15); // ფირფიტის სიმაღლე
     }
-
-    function reset() {
-      clearTimeout(timer); // გავაჩეროთ
-      if (timer === null) {
-        from = to;
-        clear();
-      } else timer = null;
-    }
     window.onload = init;
   </script>
 </head>
@@ -271,11 +331,15 @@
   <header>
     <h1>ჰანოის კოშკები</h1>
   </header>
-  <div>
-    <a class="button" onclick="start()">დაწყება</a>
-    <a class="button" onclick="reset()">შეჩერება</a>
-    <p>რაოდენობა: <input id="disks" type="range" min="1" max="8" value="8" /></p>
-    <p>სიჩქარე: <input id="speed" type="range" min="1" max="10" value="5" step="0.01" /></p>
+  <button id="start" onclick="start()">დაწყება</button>
+  <button id="reset" onclick="reset()">შეჩერება</button>
+  <div class="range-container">
+    რაოდენობა:
+    <input id="disks" type="range" min="1" max="8" value="8" />
+  </div>
+  <div class="range-container">
+    სიჩქარე:
+    <input id="speed" type="range" min="1" max="10" value="5.4" step="0.1" />
   </div>
   <canvas id="hanoi" height="200" width="300">რაღაცამ არ იმუშავა :(</canvas>
   <footer>
