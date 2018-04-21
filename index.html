@@ -70,9 +70,7 @@
       overflow: visible;
     }
 
-    button,
-    button:active,
-    button:focus {
+    button {
       background-color: #E7E7E7;
       color: #555555;
       border: 1px solid #555555;
@@ -326,6 +324,7 @@
         cw - color * 10, // ფირფიტის სიგანე (width > 20)
         15); // ფირფიტის სიმაღლე
     }
+
     window.onload = init;
   </script>
 </head>
@@ -342,7 +341,7 @@
   </div>
   <div class="range-container">
     სიჩქარე:
-    <input id="speed" type="range" min="1" max="10" value="5.4" step="0.1" />
+    <input id="speed" type="range" min="1" max="10.1" value="5.5" step="0.1" />
   </div>
   <canvas id="hanoi" height="200" width="300">რაღაცამ არ იმუშავა :(</canvas>
   <footer>
