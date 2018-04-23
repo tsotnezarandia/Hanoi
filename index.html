@@ -103,8 +103,9 @@
       -moz-appearance: none;
       appearance: none;
       background: transparent;
-      height: 23px;
+      height: 28px;
       width: 100%;
+      padding: 0;
       opacity: 0.8;
       transition: opacity 0.2s;
       -webkit-transition: 0.2s;
@@ -213,6 +214,7 @@
       buffer.ctx.fillText("ბიჯი:", 10, 10);
 
       range_disks.onchange = refresh_disks;
+      range_speed.onchange = refresh_speed;
       range_speed.oninput = refresh_speed;
       refresh_speed();
       refresh_disks();
