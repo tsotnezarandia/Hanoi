@@ -28,7 +28,7 @@
       width: auto;
       background: #ECECEC;
       color: #555555;
-      font: 100% Verdana, Arial, Helvetica, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       text-decoration: none;
       text-align: center;
       margin: 0;
@@ -44,7 +44,8 @@
       display: inline-block;
       background-color: transparent;
       color: #708090;
-      font: larger Verdana, Arial, Helvetica, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: larger;
       text-decoration: none;
       cursor: pointer;
       margin: 10px;
@@ -75,6 +76,7 @@
       color: #555555;
       border: 1px solid #555555;
       border-radius: 12px;
+      margin-bottom: 8px;
       padding: 10px 25px;
       text-align: center;
       text-transform: none;
@@ -103,7 +105,7 @@
       -moz-appearance: none;
       appearance: none;
       background: transparent;
-      height: 28px;
+      height: 30px;
       width: 100%;
       padding: 0;
       opacity: 0.8;
@@ -133,6 +135,7 @@
     }
 
     input[type=range]::-moz-range-thumb {
+      margin: 0;
       height: 25px;
       width: 25px;
       background: #5F9EA0;
@@ -142,6 +145,7 @@
     }
 
     input[type=range]::-ms-thumb {
+      margin: 0;
       height: 25px;
       width: 25px;
       background: #5F9EA0;
@@ -202,16 +206,18 @@
       context = canvas.getContext("2d"); // "სახატავი" დაფა
       ch = canvas.height - 20; // სიმაღლე ქვედა ნაწილის გარეშე
       cw = canvas.width / 3; // ფირფიტის მაქსიმალური სიგანე
+      context.font = "bold 12px Arial, Helvetica, sans-serif";
 
       buffer.width = canvas.width;
       buffer.height = canvas.height;
       buffer.ctx = buffer.getContext("2d");
       buffer.ctx.fillStyle = "black";
+      buffer.ctx.font = "bold 12px Arial, Helvetica, sans-serif";
       buffer.ctx.fillRect(cw * 0.5 - 10, 0, 20, canvas.height); // ღერძი: 1
       buffer.ctx.fillRect(cw * 1.5 - 10, 0, 20, canvas.height); // ღერძი: 2
       buffer.ctx.fillRect(cw * 2.5 - 10, 0, 20, canvas.height); // ღერძი: 3
       buffer.ctx.fillRect(0, ch, canvas.width, 20); // ქვედა ნაწილი
-      buffer.ctx.fillText("ბიჯი:", 10, 10);
+      buffer.ctx.fillText("ბიჯი:", 5, 10);
 
       range_disks.onchange = refresh_disks;
       range_speed.onchange = refresh_speed;
@@ -250,7 +256,7 @@
         isEven = (disks % 2 === 0);
         for (var i = 0; i < towers.length; i++)
           towers[i].length = 0; // კოშკების გასუფთავება
-        for (var j = 0; j < disks; j++)
+        for (var j = range_disks.max - disks; j < range_disks.max; j++)
           towers[0].push(j); // პირველი კოშკის ავსება
         draw(); // წინასწარი მდგომარეობა
       } else if (timer === null) {
